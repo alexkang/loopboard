@@ -5,6 +5,9 @@ Dynamic soundboard for Android. Record sound clips and play them back or loop th
 
 Currently, the application can record sounds through the microphone and play them back through a newly created Button. Each button has the option to re-record and loop playback. 
 
+Google Play Store link: https://play.google.com/store/apps/details?id=com.alexkang.loopboard
+
 To-Do:
-	- Add option to save samples
-	- User-loaded sounds
+- Add option to save samples
+	
+- User-loaded sounds
