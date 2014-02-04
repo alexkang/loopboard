@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -21,7 +22,6 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import com.alexkang.loopboard.R;
 
 public class MainActivity extends Activity {
 	
@@ -35,7 +35,10 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		Typeface slabLight = Typeface.createFromAsset(getAssets(), "RobotoSlab-Light.ttf");
+		
 		Button initButton = (Button) findViewById(R.id.init_button); // Record button.
+		initButton.setTypeface(slabLight);
 		initButton.setOnTouchListener(new OnTouchListener() {
 			
 			/*
@@ -66,14 +69,25 @@ public class MainActivity extends Activity {
 					ToggleButton loop = new ToggleButton(getBaseContext());
 					
 					// Setting aesthetics.
+					LayoutParams layoutParams = new LayoutParams(
+							LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+					
+					Typeface slabLight = Typeface.createFromAsset(getAssets(), "RobotoSlab-Light.ttf");
+					Typeface slabRegular = Typeface.createFromAsset(getAssets(), "RobotoSlab-Regular.ttf");
+					Typeface slabBold = Typeface.createFromAsset(getAssets(), "RobotoSlab-Bold.ttf");
+					
 					soundByte.setTextColor(Color.WHITE);
 					soundByte.setBackgroundColor(Color.parseColor("#38b2ce"));
+					soundByte.setTypeface(slabLight);
+					soundByte.setLayoutParams(new LayoutParams(
+							300, LayoutParams.WRAP_CONTENT));
 					reRecSound.setBackgroundColor(Color.parseColor("#04819e"));
+					reRecSound.setTypeface(slabBold);
+					reRecSound.setLayoutParams(layoutParams);
 					reRecSound.setText("rec");
 					loop.setBackgroundColor(Color.parseColor("#60b9ce"));
-					loop.setLayoutParams(new LayoutParams(
-							LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
-					);
+					loop.setTypeface(slabRegular);
+					loop.setLayoutParams(layoutParams);
 					loop.setText("loop!");
 					loop.setTextOn("don't loop!");
 					loop.setTextOff("loop!");
