@@ -67,10 +67,10 @@ public class MainActivity extends Activity {
 					
 					// Setting aesthetics.
 					soundByte.setTextColor(Color.WHITE);
-					soundByte.setBackgroundColor(Color.parseColor("#ff8f00"));
-					reRecSound.setBackgroundColor(Color.RED);
+					soundByte.setBackgroundColor(Color.parseColor("#38b2ce"));
+					reRecSound.setBackgroundColor(Color.parseColor("#04819e"));
 					reRecSound.setText("rec");
-					loop.setBackgroundColor(Color.parseColor("#ffcc00"));
+					loop.setBackgroundColor(Color.parseColor("#60b9ce"));
 					loop.setLayoutParams(new LayoutParams(
 							LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
 					);
