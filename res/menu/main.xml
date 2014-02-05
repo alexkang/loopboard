@@ -2,13 +2,13 @@
 
     <item
         android:id="@+id/action_clear"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:icon="@drawable/ic_action_discard"
         android:title="@string/action_clear" />
     
     <item
         android:id="@+id/action_stop"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:icon="@drawable/ic_action_stop"
         android:title="@string/action_stop" />
 

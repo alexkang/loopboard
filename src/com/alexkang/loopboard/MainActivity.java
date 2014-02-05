@@ -71,11 +71,15 @@ public class MainActivity extends Activity {
 					// Setting aesthetics.
 					LayoutParams layoutParams = new LayoutParams(
 							LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+					LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+							LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+					rowParams.setMargins(0, 0, 0, 5);
 					
 					Typeface slabLight = Typeface.createFromAsset(getAssets(), "RobotoSlab-Light.ttf");
 					Typeface slabRegular = Typeface.createFromAsset(getAssets(), "RobotoSlab-Regular.ttf");
 					Typeface slabBold = Typeface.createFromAsset(getAssets(), "RobotoSlab-Bold.ttf");
 					
+					row.setLayoutParams(rowParams);
 					soundByte.setTextColor(Color.WHITE);
 					soundByte.setBackgroundColor(Color.parseColor("#38b2ce"));
 					soundByte.setTypeface(slabLight);
@@ -93,11 +97,11 @@ public class MainActivity extends Activity {
 					loop.setTextOff("loop!");
 					
 					// Labeling the samples.
-					if (k < 10) {
-						soundByte.setText("Sample 0" + k);
+					if (k < 9) {
+						soundByte.setText("Sample 0" + (k+1));
 					}
 					else {
-						soundByte.setText("Sample " + k);
+						soundByte.setText("Sample " + (k+1));
 					}
 					
 					// Normal play back.

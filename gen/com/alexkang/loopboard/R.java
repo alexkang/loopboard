@@ -47,6 +47,8 @@ public final class R {
         public static final int stop=0x7f050005;
     }
     public static final class style {
+        public static final int ActionBar=0x7f060002;
+        public static final int ActionBarText=0x7f060003;
         /** 
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
@@ -66,7 +68,6 @@ public final class R {
         AppBaseTheme from BOTH res/values/styles.xml and
         res/values-v11/styles.xml on API 14+ devices.
     
- API 14 theme customizations can go here. 
          */
         public static final int AppBaseTheme=0x7f060000;
         /**  Application theme. 

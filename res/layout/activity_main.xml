@@ -31,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@android:color/white"
-        android:background="#38b2ce"
+        android:background="#04819e"
         android:text="@string/record" />
 
 </RelativeLayout>
