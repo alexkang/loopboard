@@ -35,11 +35,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		Typeface slabLight = Typeface.createFromAsset(getAssets(), "RobotoSlab-Light.ttf");
-		
-		Button initButton = (Button) findViewById(R.id.init_button); // Record button.
-		initButton.setTypeface(slabLight);
-		initButton.setOnTouchListener(new OnTouchListener() {
+		Button recButton = (Button) findViewById(R.id.rec_button); // Record button.
+		recButton.setOnTouchListener(new OnTouchListener() {
 			
 			/*
 			 * onTouch buttons are used to record sound by holding down the button to
@@ -172,11 +169,7 @@ public class MainActivity extends Activity {
 		LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
 		switch (item.getItemId()) {
 			case R.id.action_stop: // Stops all looped play backs.
-				for (int i=0; i<layout.getChildCount(); i++) {
-					LinearLayout row = (LinearLayout) layout.getChildAt(i);
-					ToggleButton button = (ToggleButton) row.getChildAt(2);
-					button.setChecked(false);
-				}
+				switchAll(layout, false);
 				return true;
 			case R.id.action_clear: // Stops all looped play backs AND removes all buttons.
 				for (int i=0; i<layout.getChildCount(); i++) {
@@ -190,6 +183,12 @@ public class MainActivity extends Activity {
 			default:
 				return true;
 		}
+	}
+
+	public void onPause() {
+		super.onPause();
+		LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
+		switchAll(layout, false);
 	}
 	
 	public void playFile(File audio, MediaPlayer mPlayer, boolean loop) {
@@ -208,6 +207,14 @@ public class MainActivity extends Activity {
 	 */
 	public void stopFile(MediaPlayer mPlayer) {
 		mPlayer.reset();
+	}
+	
+	public void switchAll(LinearLayout layout, boolean status) {
+		for (int i=0; i<layout.getChildCount(); i++) {
+			LinearLayout row = (LinearLayout) layout.getChildAt(i);
+			ToggleButton button = (ToggleButton) row.getChildAt(2);
+			button.setChecked(status);
+		}
 	}
 	
 	private void startRecording(int k) {
