@@ -8,6 +8,4 @@ Currently, the application can record sounds through the microphone and play the
 Google Play Store link: https://play.google.com/store/apps/details?id=com.alexkang.loopboard
 
 To-Do:
-- Add option to save samples
-	
 - User-loaded sounds
