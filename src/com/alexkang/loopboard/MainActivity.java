@@ -172,17 +172,15 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
 		switch (item.getItemId()) {
-			case R.id.action_stop: // Stops all looped play backs.
-				switchAll(layout, false);
+			case R.id.action_delete: // Deletes all local sounds on external storage.
+				clear(layout);
+				deleteAll();
 				return true;
 			case R.id.action_clear: // Stops all looped play backs AND removes all buttons.
-				for (int i=0; i<layout.getChildCount(); i++) {
-					LinearLayout row = (LinearLayout) layout.getChildAt(i);
-					ToggleButton button = (ToggleButton) row.getChildAt(2);
-					button.setChecked(false);
-				}
-				layout.removeAllViews();
-				i = 0;
+				clear(layout);
+				return true;
+			case R.id.action_stop: // Stops all looped play backs.
+				switchAll(layout, false);
 				return true;
 			default:
 				return true;
@@ -250,6 +248,16 @@ public class MainActivity extends Activity {
 		mRecorder.release();
 	}
 	
+	private void clear(LinearLayout layout) {
+		for (int i=0; i<layout.getChildCount(); i++) {
+			LinearLayout row = (LinearLayout) layout.getChildAt(i);
+			ToggleButton button = (ToggleButton) row.getChildAt(2);
+			button.setChecked(false);
+		}
+		layout.removeAllViews();
+		i = 0;
+	}
+	
 	private void saveFile(File f) {
 		try {
 			FileOutputStream output = new FileOutputStream(f);
@@ -258,4 +266,12 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 	}
+	
+	private void deleteAll() {
+		File[] files = DIR.listFiles();
+		for (File file: files) {
+			file.delete();
+		}
+	}
+	
 }
