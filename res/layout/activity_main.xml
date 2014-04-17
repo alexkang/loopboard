@@ -25,7 +25,7 @@
 	    </ScrollView>
     
     <Button
-        android:id="@+id/init_button"
+        android:id="@+id/rec_button"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_width="match_parent"
