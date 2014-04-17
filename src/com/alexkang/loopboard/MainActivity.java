@@ -1,7 +1,9 @@
 package com.alexkang.loopboard;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -9,6 +11,7 @@ import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,22 +23,27 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
 	
-	MediaRecorder mRecorder;
-	File audioFile;
-	File[] clips = new File[50];
-	int i = 0; // Keeps track of how many samples were made.
+	private static final String PATH = Environment.getExternalStorageDirectory() + "/LoopBoard";
+	private static final File DIR = new File(PATH);
+	private MediaRecorder mRecorder;
+	private ArrayList<File> clips = new ArrayList<File>();
+	private int i = 0; // Keeps track of how many samples were made.
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		DIR.mkdirs();
+		File noMedia = new File(PATH, ".nomedia");
+		saveFile(noMedia);
+		
 		Button recButton = (Button) findViewById(R.id.rec_button); // Record button.
+		
 		recButton.setOnTouchListener(new OnTouchListener() {
 			
 			/*
@@ -51,11 +59,7 @@ public class MainActivity extends Activity {
 				if (action == MotionEvent.ACTION_DOWN) {
 					startRecording(k);
 				}
-				else if (action == MotionEvent.ACTION_UP) {
-					if (i >= clips.length) {
-						return false;
-					}
-					
+				else if (action == MotionEvent.ACTION_UP) {					
 					stopRecording();
 					
 					// Button row is made by putting Button objects in a LinearLayout.
@@ -111,7 +115,7 @@ public class MainActivity extends Activity {
 						@Override
 						public void onClick(View view) {
 							MediaPlayer mPlayerReg = new MediaPlayer();
-							playFile(clips[k], mPlayerReg, false);
+							playFile(clips.get(k), mPlayerReg, false);
 						}
 					});
 				
@@ -137,7 +141,7 @@ public class MainActivity extends Activity {
 						@Override
 						public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 							if (isChecked) {
-								playFile(clips[k], mPlayer, true);
+								playFile(clips.get(k), mPlayer, true);
 							}
 							else if (!isChecked) {
 								stopFile(mPlayer);
@@ -222,20 +226,14 @@ public class MainActivity extends Activity {
 		mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 		
-		File dir = this.getCacheDir();
-		
 		try {
-			clips[k] = File.createTempFile("sample", ".3gp", dir);
-		} catch (IOException e) {
-			Log.e("fileError", "createTempFile failed");
-			return;
-		} catch (Exception e) { // Handles errors when index is out of bounds for clips[].
-			Toast maxError = Toast.makeText(this, "Cannot create more sounds", Toast.LENGTH_SHORT);
-			maxError.show();
+			clips.add(k, new File(PATH, "Sample " + k + ".mp3"));
+		} catch (Exception e) {
+			Log.e("fileError", "Creating file failed");
 			return;
 		}
 		
-		mRecorder.setOutputFile(clips[k].getAbsolutePath());
+		mRecorder.setOutputFile(clips.get(k).getAbsolutePath());
 		mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
 		try {
@@ -250,5 +248,14 @@ public class MainActivity extends Activity {
 	private void stopRecording() {
 		mRecorder.stop();
 		mRecorder.release();
+	}
+	
+	private void saveFile(File f) {
+		try {
+			FileOutputStream output = new FileOutputStream(f);
+			output.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
