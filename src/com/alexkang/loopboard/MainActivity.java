@@ -85,7 +85,7 @@ public class MainActivity extends Activity {
 					soundByte.setBackgroundColor(Color.parseColor("#38b2ce"));
 					soundByte.setTypeface(slabLight);
 					soundByte.setLayoutParams(new LayoutParams(
-							300, LayoutParams.WRAP_CONTENT));
+							400, LayoutParams.WRAP_CONTENT));
 					reRecSound.setBackgroundColor(Color.parseColor("#04819e"));
 					reRecSound.setTypeface(slabBold);
 					reRecSound.setLayoutParams(layoutParams);
