@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">LoopBoard</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_delete">Delete All Local Sounds</string>
+    <string name="record">Press and hold to record!</string>
+    <string name="play">Play!</string>
+    <string name="stop">Stop</string>
+
+</resources>
