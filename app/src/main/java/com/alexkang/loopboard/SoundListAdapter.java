@@ -19,6 +19,7 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
     private SoundPool mSoundPool;
 
     private int[] streamIds = new int[50];
+    private boolean[] isLooping = new boolean[50];
 
     public SoundListAdapter(Context context, ArrayList<Integer> soundIds, SoundPool soundPool) {
         super(context, R.layout.sound_clip_row, soundIds);
@@ -79,22 +80,23 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
             }
         });
 
-        loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
+        if (!isLooping[position]) {
+            loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
+        } else {
+            loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_bright));
+        }
         loopButton.setOnClickListener(new View.OnClickListener() {
-
-            boolean isLooping = false;
 
             @Override
             public void onClick (View v){
-                if (!isLooping) {
+                if (!isLooping[position]) {
                     v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_bright));
                     streamIds[position] = mSoundPool.play(soundId, 1f, 1f, 1, -1, 1f);
-                    isLooping = true;
                 } else {
                     v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
                     mSoundPool.stop(streamIds[position]);
-                    isLooping = false;
                 }
+                isLooping[position] = !isLooping[position];
             }
 
         });

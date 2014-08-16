@@ -120,6 +120,11 @@ public class MainActivity extends Activity {
 	}
 	
 	protected void startRecording(int k) throws IllegalStateException {
+        if (k >= 50) {
+            Toast.makeText(this, "Cannot create any more sounds", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
