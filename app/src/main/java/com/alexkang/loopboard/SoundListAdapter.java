@@ -1,7 +1,9 @@
 package com.alexkang.loopboard;
 
 import android.content.Context;
-import android.media.SoundPool;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -12,26 +14,26 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class SoundListAdapter extends ArrayAdapter<Integer> {
+public class SoundListAdapter extends ArrayAdapter<byte[]> {
+
+    private static final int SAMPLE_RATE = 44100;
 
     private Context mContext;
-    private ArrayList<Integer> mSoundIds;
-    private SoundPool mSoundPool;
 
-    private int[] streamIds = new int[50];
+    private AudioTrack[] mTracks = new AudioTrack[50];
+    private AudioTrack[] mLoopedTracks = new AudioTrack[50];
+    private boolean[] shouldReload = new boolean[50];
     private boolean[] isLooping = new boolean[50];
 
-    public SoundListAdapter(Context context, ArrayList<Integer> soundIds, SoundPool soundPool) {
-        super(context, R.layout.sound_clip_row, soundIds);
+    public SoundListAdapter(Context context, ArrayList<byte[]> sounds) {
+        super(context, R.layout.sound_clip_row, sounds);
 
         mContext = context;
-        mSoundIds = soundIds;
-        mSoundPool = soundPool;
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        final int soundId = getItem(position);
+        final byte[] sound = getItem(position);
 
         if (convertView == null) {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.sound_clip_row, parent, false);
@@ -63,8 +65,14 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
                     }
 
                     loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
-                    mSoundPool.stop(streamIds[position]);
-                    mSoundIds.set(position, mSoundPool.load(((MainActivity) mContext).mSounds.get(position).getAbsolutePath(), 1));
+                    isLooping[position] = false;
+                    shouldReload[position] = true;
+
+                    try {
+                        mLoopedTracks[position].stop();
+                        mLoopedTracks[position].release();
+                    } catch (Exception e) {}
+
                     notifyDataSetChanged();
                 }
 
@@ -76,7 +84,7 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick (View v){
-                mSoundPool.play(soundId, 1f, 1f, 1, 0, 1f);
+                new PlayThread(sound, position).start();
             }
         });
 
@@ -91,10 +99,16 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
             public void onClick (View v){
                 if (!isLooping[position]) {
                     v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_bright));
-                    streamIds[position] = mSoundPool.play(soundId, 1f, 1f, 1, -1, 1f);
+                    new LoopThread(sound, position).start();
                 } else {
-                    v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
-                    mSoundPool.stop(streamIds[position]);
+                    while (true) {
+                        if (mLoopedTracks[position].getState() == AudioTrack.STATE_INITIALIZED) {
+                            v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
+                            mLoopedTracks[position].stop();
+                            mLoopedTracks[position].release();
+                            break;
+                        }
+                    }
                 }
                 isLooping[position] = !isLooping[position];
             }
@@ -104,8 +118,92 @@ public class SoundListAdapter extends ArrayAdapter<Integer> {
         return convertView;
     }
 
-    protected int[] getStreamIds() {
-        return streamIds;
+    protected void stopAll() {
+        for (int i=0; i<mTracks.length; i++) {
+            try {
+                shouldReload[i] = true;
+                mTracks[i].stop();
+            } catch (Exception e1) {}
+
+            try {
+                mLoopedTracks[i].stop();
+            } catch (Exception e2) {}
+
+            isLooping[i] = false;
+        }
+
+        notifyDataSetChanged();
+    }
+
+    private class PlayThread extends Thread {
+
+        private byte[] soundByte;
+        private int index;
+
+        public PlayThread(byte[] soundByte, int index) {
+            this.soundByte = soundByte;
+            this.index = index;
+        }
+
+        public void run() {
+            if (mTracks[index] == null || shouldReload[index]) {
+                mTracks[index] = new AudioTrack(
+                        AudioManager.STREAM_MUSIC,
+                        SAMPLE_RATE,
+                        AudioFormat.CHANNEL_OUT_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT,
+                        soundByte.length,
+                        AudioTrack.MODE_STATIC
+                );
+
+                shouldReload[index] = false;
+
+                while (true) {
+                    if (mTracks[index].getState() == AudioTrack.STATE_NO_STATIC_DATA) {
+                        mTracks[index].write(soundByte, 0, soundByte.length);
+                        mTracks[index].play();
+                        break;
+                    }
+                }
+            } else {
+                mTracks[index].stop();
+                mTracks[index].reloadStaticData();
+                mTracks[index].play();
+            }
+        }
+
+    }
+
+    private class LoopThread extends Thread {
+
+        private byte[] soundByte;
+        private int index;
+
+        public LoopThread(byte[] soundByte, int index) {
+            this.soundByte = soundByte;
+            this.index = index;
+        }
+
+        public void run() {
+            mLoopedTracks[index] = new AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    SAMPLE_RATE,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    soundByte.length,
+                    AudioTrack.MODE_STATIC
+            );
+
+            while (true) {
+                if (mLoopedTracks[index].getState() == AudioTrack.STATE_NO_STATIC_DATA) {
+                    mLoopedTracks[index].write(soundByte, 0, soundByte.length);
+                    mLoopedTracks[index].setLoopPoints(0, soundByte.length / 2, -1);
+                    mLoopedTracks[index].play();
+                    break;
+                }
+            }
+        }
+
     }
 
 }

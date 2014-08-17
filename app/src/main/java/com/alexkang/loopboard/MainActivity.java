@@ -1,12 +1,11 @@
 package com.alexkang.loopboard;
 
 import android.app.Activity;
-import android.media.AudioManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -16,6 +15,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,13 +25,15 @@ public class MainActivity extends Activity {
 	
 	private static final String PATH = Environment.getExternalStorageDirectory() + "/LoopBoard";
 	private static final File DIR = new File(PATH);
+    private static final int SAMPLE_RATE = 44100;
 
     private SoundListAdapter mAdapter;
 
-    private ArrayList<Integer> mSoundIds;
-    protected ArrayList<File> mSounds;
-    private SoundPool mSoundPool;
-	private MediaRecorder mRecorder;
+    protected ArrayList<byte[]> mSounds;
+	private AudioRecord mRecorder;
+    protected int mMinBuffer;
+
+    private boolean isRecording = false;
 	private int i = 0; // Keeps track of how many samples were made.
 
 	@Override
@@ -41,15 +43,20 @@ public class MainActivity extends Activity {
 		
 		DIR.mkdirs();
 		File noMedia = new File(PATH, ".nomedia");
-		saveFile(noMedia);
+        try {
+            FileOutputStream output = new FileOutputStream(noMedia);
+            output.write(0);
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        mSoundIds = new ArrayList<Integer>();
-        mSounds = new ArrayList<File>();
-        mSoundPool = new SoundPool(50, AudioManager.STREAM_MUSIC, 0);
-        mRecorder = new MediaRecorder();
+        mMinBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+
+        mSounds = new ArrayList<byte[]>();
 
         ListView mSoundList = (ListView) findViewById(R.id.sound_list);
-        mAdapter = new SoundListAdapter(this, mSoundIds, mSoundPool);
+        mAdapter = new SoundListAdapter(this, mSounds);
         mSoundList.setAdapter(mAdapter);
 
 		Button recButton = (Button) findViewById(R.id.rec_button); // Record button.
@@ -78,10 +85,6 @@ public class MainActivity extends Activity {
                         Toast.makeText(getBaseContext(), "Unable to record sound", Toast.LENGTH_SHORT).show();
                         return false;
                     }
-
-                    mSoundIds.add(mSoundPool.load(mSounds.get(i).getAbsolutePath(), 1));
-                    mAdapter.notifyDataSetChanged();
-                    i++;
 				}
 				
 				return true;
@@ -106,7 +109,7 @@ public class MainActivity extends Activity {
                 clear();
 				return true;
 			case R.id.action_stop: // Stops all looped play backs.
-                stopAll();
+                mAdapter.stopAll();
 				return true;
 			default:
 				return true;
@@ -116,79 +119,149 @@ public class MainActivity extends Activity {
 	public void onPause() {
 		super.onPause();
 
-        stopAll();
+        mAdapter.stopAll();
 	}
 	
-	protected void startRecording(int k) throws IllegalStateException {
+	protected void startRecording(int k) {
         if (k >= 50) {
             Toast.makeText(this, "Cannot create any more sounds", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mRecorder = new AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                SAMPLE_RATE,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                mMinBuffer
+        );
 
-		try {
-            if (k >= mSounds.size()) {
-                mSounds.add(k, new File(PATH, "Sample " + k + ".mp3"));
-            } else {
-                mSounds.set(k, new File(PATH, "Sample " + k + ".mp3"));
-            }
-		} catch (Exception e) {
-			Log.e("fileError", "Creating file failed");
-			return;
-		}
-		
-		mRecorder.setOutputFile(mSounds.get(k).getAbsolutePath());
-
-		try {
-			mRecorder.prepare();
-		} catch (IOException e) {
-			Log.e("prepareError", "prepare failed");
-		}
-		
-		mRecorder.start();
-	}
-	
-	protected void stopRecording() throws IllegalStateException {
-        mRecorder.stop();
-		mRecorder.reset();
+        isRecording = true;
+        mRecorder.startRecording();
+		new RecordingThread(k).start();
 	}
 
-    private void saveFile(File f) {
-        try {
-            FileOutputStream output = new FileOutputStream(f);
-            output.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopAll() {
-        for (int streamId : mAdapter.getStreamIds()) {
-            mSoundPool.stop(streamId);
-        }
-        mAdapter.notifyDataSetChanged();
-    }
+	protected void stopRecording() {
+        new StopThread().start();
+	}
 	
 	private void clear() {
-        stopAll();
-
-        mSoundIds.clear();
+        mAdapter.stopAll();
 		mSounds.clear();
         i = 0;
-
         mAdapter.clear();
 	}
 	
 	private void deleteAll() {
 		File[] files = DIR.listFiles();
 		for (File file: files) {
-			file.delete();
+            if (!file.getName().equals(".nomedia")) {
+                System.out.println(file.getName());
+                file.delete();
+            }
 		}
         clear();
         Toast.makeText(this, "All local sounds deleted", Toast.LENGTH_SHORT).show();
 	}
+
+    private class RecordingThread extends Thread {
+
+        private int index;
+
+        public RecordingThread(int k) {
+            index = k;
+        }
+
+        public void run() {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[mMinBuffer];
+            int b = 0;
+
+            while (b < 14000) {
+                try {
+                    b += mRecorder.read(buffer, 0, mMinBuffer);
+                } catch(NullPointerException e) {
+                    return;
+                }
+            }
+
+            while (isRecording) {
+                mRecorder.read(buffer, 0, mMinBuffer);
+                output.write(buffer, 0, mMinBuffer);
+            }
+
+            try {
+                output.flush();
+                byte[] byteArray = output.toByteArray();
+
+                if (index >= i) {
+                    mSounds.add(byteArray);
+                } else {
+                    try {
+                        mSounds.set(index, byteArray);
+                    } catch (IndexOutOfBoundsException e) {
+                        mSounds.add(byteArray);
+                        i = mSounds.size();
+                    }
+                }
+
+                new SaveThread(byteArray, index).start();
+
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private class StopThread extends Thread {
+
+        public void run() {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {}
+
+            if (mRecorder != null) {
+                isRecording = false;
+                mRecorder.stop();
+                mRecorder.release();
+                mRecorder = null;
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mAdapter.notifyDataSetChanged();
+                    i++;
+                }
+            });
+        }
+
+    }
+
+    private class SaveThread extends Thread {
+
+        byte[] soundByte;
+        int index;
+
+        public SaveThread(byte[] soundByte, int index) {
+            this.soundByte = soundByte;
+            this.index = index;
+        }
+
+        public void run() {
+            File savedPCM = new File(PATH, "Sample " + index + ".pcm");
+
+            try {
+                FileOutputStream output = new FileOutputStream(savedPCM);
+                output.write(soundByte);
+                output.close();
+            } catch (Exception e) {
+                System.err.println("Sound unable to be saved.");
+            }
+        }
+
+    }
 	
 }
