@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -49,20 +48,18 @@ public class SoundListAdapter extends ArrayAdapter<byte[]> {
                 int action = motionEvent.getAction();
 
                 if (action == MotionEvent.ACTION_DOWN) {
-                    try {
-                        view.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_red_dark));
-                        ((MainActivity) mContext).startRecording(position);
-                    } catch (IllegalStateException e) {
+                    view.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_red_dark));
+
+                    if (((System.nanoTime() - ((MainActivity) mContext).lastKnownTime) / 1e6) < 300) {
+                        ((MainActivity) mContext).lastKnownTime = System.nanoTime();
                         return false;
                     }
-                } else if (action == MotionEvent.ACTION_UP) {
-                    try {
-                        view.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_red_light));
-                        ((MainActivity) mContext).stopRecording();
-                    } catch (IllegalStateException e) {
-                        Toast.makeText(mContext, "Unable to record sound", Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
+                    ((MainActivity) mContext).lastKnownTime = System.nanoTime();
+
+                    ((MainActivity) mContext).startRecording(position);
+                } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    view.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_red_light));
+                    ((MainActivity) mContext).stopRecording();
 
                     loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
                     isLooping[position] = false;

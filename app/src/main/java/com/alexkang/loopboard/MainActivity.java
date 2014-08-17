@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
 	private static final String PATH = Environment.getExternalStorageDirectory() + "/LoopBoard";
 	private static final File DIR = new File(PATH);
     private static final int SAMPLE_RATE = 44100;
+    private static final int MAX_TRACKS = 16;
 
     private SoundListAdapter mAdapter;
 
@@ -33,8 +34,9 @@ public class MainActivity extends Activity {
 	private AudioRecord mRecorder;
     protected int mMinBuffer;
 
+    protected long lastKnownTime = System.nanoTime();
+
     private boolean isRecording = false;
-	private int i = 0; // Keeps track of how many samples were made.
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,21 +72,19 @@ public class MainActivity extends Activity {
 				int action = motionEvent.getAction();
 				
 				if (action == MotionEvent.ACTION_DOWN) {
-                    try {
-                        view.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
-                        startRecording(i);
-                    } catch (IllegalStateException e) {
+                    view.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
+
+                    if (((System.nanoTime() - lastKnownTime) / 1e6) < 300) {
+                        lastKnownTime = System.nanoTime();
                         return false;
                     }
+                    lastKnownTime = System.nanoTime();
+
+                    startRecording(mSounds.size());
 				}
-				else if (action == MotionEvent.ACTION_UP) {
-                    try {
-                        view.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
-                        stopRecording();
-                    } catch (IllegalStateException e) {
-                        Toast.makeText(getBaseContext(), "Unable to record sound", Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
+				else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                    view.setBackgroundColor(getResources().getColor(android.R.color.holo_red_light));
+                    stopRecording();
 				}
 				
 				return true;
@@ -123,10 +123,14 @@ public class MainActivity extends Activity {
 	}
 	
 	protected void startRecording(int k) {
-        if (k >= 50) {
+        if (k >= MAX_TRACKS) {
             Toast.makeText(this, "Cannot create any more sounds", Toast.LENGTH_SHORT).show();
             return;
+        } else if (isRecording) {
+            return;
         }
+
+        isRecording = true;
 
         mRecorder = new AudioRecord(
                 MediaRecorder.AudioSource.MIC,
@@ -136,7 +140,6 @@ public class MainActivity extends Activity {
                 mMinBuffer
         );
 
-        isRecording = true;
         mRecorder.startRecording();
 		new RecordingThread(k).start();
 	}
@@ -148,7 +151,6 @@ public class MainActivity extends Activity {
 	private void clear() {
         mAdapter.stopAll();
 		mSounds.clear();
-        i = 0;
         mAdapter.clear();
 	}
 	
@@ -156,7 +158,6 @@ public class MainActivity extends Activity {
 		File[] files = DIR.listFiles();
 		for (File file: files) {
             if (!file.getName().equals(".nomedia")) {
-                System.out.println(file.getName());
                 file.delete();
             }
 		}
@@ -194,15 +195,14 @@ public class MainActivity extends Activity {
                 output.flush();
                 byte[] byteArray = output.toByteArray();
 
-                if (index >= i) {
+                if (byteArray.length < 22050) {
+                    return;
+                }
+
+                if (index >= mSounds.size()) {
                     mSounds.add(byteArray);
                 } else {
-                    try {
-                        mSounds.set(index, byteArray);
-                    } catch (IndexOutOfBoundsException e) {
-                        mSounds.add(byteArray);
-                        i = mSounds.size();
-                    }
+                    mSounds.set(index, byteArray);
                 }
 
                 new SaveThread(byteArray, index).start();
@@ -224,8 +224,12 @@ public class MainActivity extends Activity {
 
             if (mRecorder != null) {
                 isRecording = false;
-                mRecorder.stop();
-                mRecorder.release();
+
+                try {
+                    mRecorder.stop();
+                    mRecorder.release();
+                } catch (IllegalStateException e) {}
+
                 mRecorder = null;
             }
 
@@ -233,7 +237,6 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     mAdapter.notifyDataSetChanged();
-                    i++;
                 }
             });
         }
