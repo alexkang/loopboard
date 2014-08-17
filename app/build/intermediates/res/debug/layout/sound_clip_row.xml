@@ -3,33 +3,36 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="60dp"
     android:gravity="center" >
 
     <Button
         android:id="@+id/rerecord"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="2"
         android:background="@android:color/holo_red_light"
         android:textColor="@android:color/white"
+        android:textSize="18sp"
         android:text="@string/rerecord" />
 
     <Button
         android:id="@+id/play"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="4"
         android:background="@drawable/play_background"
-        android:textColor="@android:color/white" />
+        android:textColor="@android:color/white"
+        android:textSize="18sp" />
 
     <Button
         android:id="@+id/loop"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="2"
         android:background="@android:color/holo_blue_dark"
         android:textColor="@android:color/white"
+        android:textSize="18sp"
         android:text="@string/loop"/>
 
 </LinearLayout><!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/layout/sound_clip_row.xml -->

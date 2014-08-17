@@ -14,12 +14,14 @@
         android:id="@+id/sound_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:dividerHeight="7dp"
+        android:divider="@android:color/transparent" />
     
     <Button
         android:id="@+id/rec_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_marginTop="16dp"
         android:textColor="@android:color/white"
         android:background="@android:color/holo_red_light"

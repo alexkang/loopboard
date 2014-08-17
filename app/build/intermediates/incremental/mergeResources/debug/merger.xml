@@ -122,15 +122,13 @@
                 </string>
                 <string name="app_name" >LoopBoard
                 </string>
-                <string name="rerecord" >rec
-                </string>
                 <string name="stop" >Stop
+                </string>
+                <string name="rerecord" >rec
                 </string>
                 <string name="action_delete" >Delete All Local Sounds
                 </string>
-                <string name="record" >Press and hold to record!
-                </string>
-                <string name="play" >Play!
+                <string name="record" >Hold to record!
                 </string>
             </file>
             <file
@@ -223,6 +221,12 @@
                 path="C:\Users\Alex\Documents\Development\loop-board\app\src\main\res\drawable\skulls.png"
                 qualifiers=""
                 type="drawable" />
+            <file
+                path="C:\Users\Alex\Documents\Development\loop-board\app\src\main\res\values\colors.xml"
+                qualifiers="" >
+                <color name="blue_selected" >#8DE0F2
+                </color>
+            </file>
         </source>
         <source path="C:\Users\Alex\Documents\Development\loop-board\app\build\generated\res\rs\debug" />
         <source path="C:\Users\Alex\Documents\Development\loop-board\app\build\generated\res\generated\debug" />

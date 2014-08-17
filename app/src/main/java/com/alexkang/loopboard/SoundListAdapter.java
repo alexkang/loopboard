@@ -88,14 +88,14 @@ public class SoundListAdapter extends ArrayAdapter<byte[]> {
         if (!isLooping[position]) {
             loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_dark));
         } else {
-            loopButton.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_bright));
+            loopButton.setBackgroundColor(mContext.getResources().getColor(R.color.blue_selected));
         }
         loopButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick (View v){
                 if (!isLooping[position]) {
-                    v.setBackgroundColor(mContext.getResources().getColor(android.R.color.holo_blue_bright));
+                    v.setBackgroundColor(mContext.getResources().getColor(R.color.blue_selected));
                     new LoopThread(sound, position).start();
                 } else {
                     while (true) {

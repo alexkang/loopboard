@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/colors.xml -->
+    <eat-comment />
+
+    <color name="blue_selected">#8DE0F2</color>
     <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/dimens.xml -->
     <eat-comment />
 
@@ -14,8 +18,7 @@
     <string name="action_stop">Stop</string>
     <string name="app_name">LoopBoard</string>
     <string name="loop">loop!</string>
-    <string name="play">Play!</string>
-    <string name="record">Press and hold to record!</string>
+    <string name="record">Hold to record!</string>
     <string name="rerecord">rec</string>
     <string name="stop">Stop</string>
     <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/styles.xml -->
