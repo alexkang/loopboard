@@ -1,5 +1,5 @@
-LoopBoard
-=============
+[WINTER 2013] LoopBoard
+=======================
 
 Dynamic, customizable soundboard for Android. Record sound clips and play them back or loop them.
 
