@@ -24,7 +24,7 @@
         android:layout_height="60dp"
         android:layout_marginTop="16dp"
         android:textColor="@android:color/white"
-        android:background="@android:color/holo_red_light"
+        android:background="@drawable/record_background"
         android:text="@string/record" />
 
-</LinearLayout><!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/layout/activity_main.xml -->
+</LinearLayout><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/layout/activity_main.xml -->

@@ -1,13 +1,12 @@
 apply plugin: 'com.android.application'
-
 android {
     compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    buildToolsVersion '21.0.2'
 
     defaultConfig {
         applicationId "com.alexkang.loopboard"
         minSdkVersion 14
-        targetSdkVersion 20
+        targetSdkVersion 21
     }
 
     buildTypes {
@@ -16,4 +15,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+}
+
+dependencies {
 }

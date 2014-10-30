@@ -3,8 +3,8 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_pressed="false"
-        android:drawable="@drawable/play_background_unselected" />
+        android:drawable="@color/app_color" />
     <item android:state_pressed="true"
-        android:drawable="@drawable/play_background_selected" />
+        android:drawable="@color/default_selected" />
 
-</selector><!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/drawable/play_background.xml -->
+</selector><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/drawable/play_background.xml -->

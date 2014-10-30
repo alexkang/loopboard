@@ -11,10 +11,9 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
-        android:background="@android:color/holo_red_light"
+        android:background="@drawable/rerecord_background"
         android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:text="@string/rerecord" />
+        android:textSize="18sp" />
 
     <Button
         android:id="@+id/play"
@@ -30,9 +29,9 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
-        android:background="@android:color/holo_blue_dark"
+        android:background="@drawable/loop_background"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:text="@string/loop"/>
 
-</LinearLayout><!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/layout/sound_clip_row.xml -->
+</LinearLayout><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/layout/sound_clip_row.xml -->

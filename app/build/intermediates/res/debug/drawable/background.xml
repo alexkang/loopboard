@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/skulls"
-    android:tileMode="repeat" /><!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/drawable/background.xml -->
+    android:src="@drawable/swirl_pattern"
+    android:tileMode="repeat" /><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/drawable/background.xml -->

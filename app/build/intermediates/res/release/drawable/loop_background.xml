@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_selected="false">
+        <shape>
+            <solid
+                android:color="@color/loop_unselected" />
+            <corners
+                android:topRightRadius="2dp"
+                android:bottomRightRadius="2dp" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape>
+            <solid
+                android:color="@color/loop_selected" />
+            <corners
+                android:topRightRadius="2dp"
+                android:bottomRightRadius="2dp" />
+        </shape>
+    </item>
+
+</selector><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/drawable/loop_background.xml -->

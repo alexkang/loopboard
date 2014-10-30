@@ -1,11 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="2" >
-
-    <dataSet config="main" >
-        <source path="C:\Users\Alex\Documents\Development\loop-board\app\src\main\assets" />
-    </dataSet>
-    <dataSet config="debug" >
-        <source path="C:\Users\Alex\Documents\Development\loop-board\app\src\debug\assets" />
-    </dataSet>
-
-</merger>
+<merger version="3"><dataSet config="main"><source path="/Users/alex/Documents/Development/loop-board/app/src/main/assets"/></dataSet><dataSet config="debug"><source path="/Users/alex/Documents/Development/loop-board/app/src/debug/assets"/></dataSet></merger>

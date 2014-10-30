@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/colors.xml -->
-    <eat-comment />
-
-    <color name="blue_selected">#8DE0F2</color>
-    <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/dimens.xml -->
-    <eat-comment />
-
+    <!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/values/colors.xml -->
+    <eat-comment/>
+    <color name="app_color">#00A3F5</color>
+    <color name="default_selected">#ADE4FF</color>
+    <color name="loop_selected">#78D2FF</color>
+    <color name="loop_unselected">#007CBA</color>
+    <!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/values/dimens.xml -->
+    <eat-comment/>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/strings.xml -->
-    <eat-comment />
-
+    <!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/values/strings.xml -->
+    <eat-comment/>
     <string name="action_clear">Clear</string>
     <string name="action_delete">Delete All Local Sounds</string>
     <string name="action_stop">Stop</string>
@@ -21,19 +20,23 @@
     <string name="record">Hold to record!</string>
     <string name="rerecord">rec</string>
     <string name="stop">Stop</string>
-    <!-- From: file:/C:/Users/Alex/Documents/Development/loop-board/app/src/main/res/values/styles.xml -->
-    <eat-comment />
-
-    <style name="AppBaseTheme" parent="android:Theme.Light">
-        <!--
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        -->
+    <!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/values/styles.xml -->
+    <eat-comment/>
+    <style name="ActionBar" parent="android:Widget.Holo.ActionBar">
+        <item name="android:background">@color/app_color</item>
+        <item name="android:titleTextStyle">@style/ActionBarText</item>
+        <item name="android:height">56dp</item>
+        <item name="android:icon">@android:color/transparent</item>
     </style>
-
-    <style name="AppTheme" parent="AppBaseTheme">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    <style name="ActionBarTabTitles" parent="android:style/Widget.Holo.ActionBar.TabText">
+        <item name="android:textColor">@android:color/white</item>
     </style>
-
+    <style name="ActionBarText" parent="android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+        <item name="android:actionBarStyle">@style/ActionBar</item>
+        <item name="android:actionBarTabTextStyle">@style/ActionBarTabTitles</item>
+    </style>
 </resources>
