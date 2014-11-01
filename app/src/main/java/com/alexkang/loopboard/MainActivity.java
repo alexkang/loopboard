@@ -45,16 +45,6 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-        new File(PATH + "/custom").mkdirs();
-		File noMedia = new File(PATH, ".nomedia");
-        try {
-            FileOutputStream output = new FileOutputStream(noMedia);
-            output.write(0);
-            output.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         mMinBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
         mSamples = new ArrayList<Sample>();
@@ -117,6 +107,16 @@ public class MainActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
+
+        new File(PATH + "/custom").mkdirs();
+        File noMedia = new File(PATH, ".nomedia");
+        try {
+            FileOutputStream output = new FileOutputStream(noMedia);
+            output.write(0);
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         refreshRecordings();
     }
@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
 
 		File[] files = new File(PATH).listFiles();
 		for (File file: files) {
-            if (!file.getName().equals(".nomedia")) {
+            if (!file.getName().equals(".nomedia") && !file.getName().equals("custom")) {
                 file.delete();
             }
 		}
