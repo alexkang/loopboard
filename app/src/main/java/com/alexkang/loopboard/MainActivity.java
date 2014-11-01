@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
 				
 				if (action == MotionEvent.ACTION_DOWN) {
                     view.setPressed(true);
-                    if (((System.nanoTime() - lastKnownTime) / 1e6) < 300) {
+                    if (((System.nanoTime() - lastKnownTime) / 1e6) < 250) {
                         lastKnownTime = System.nanoTime();
                         return false;
                     }
