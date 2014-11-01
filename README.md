@@ -7,4 +7,4 @@ Currently, the application can record sounds through the microphone (or use soun
 
 Latest apk: https://www.mediafire.com/?4n47p86aaarncdx
 
-Google Play Store link: https://play.google.com/store/apps/details?id=com.alexkang.loopboard
+Google Play Store link [currently outdated]: https://play.google.com/store/apps/details?id=com.alexkang.loopboard
