@@ -87,12 +87,16 @@ public class Sample {
     }
 
     public void stop() {
-        if (isImported && currentPlayer != null) {
-            currentPlayer.stop();
-            currentPlayer.release();
-            currentPlayer = null;
-        } else if (!isImported && audioTrack != null) {
-            audioTrack.stop();
+        try {
+            if (isImported && currentPlayer != null) {
+                currentPlayer.stop();
+                currentPlayer.release();
+                currentPlayer = null;
+            } else if (!isImported && audioTrack != null) {
+                audioTrack.stop();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         isLooping = false;

@@ -3,8 +3,8 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:state_pressed="false"
-        android:drawable="@color/app_color" />
+        android:drawable="@android:color/white" />
     <item android:state_pressed="true"
-        android:drawable="@color/default_selected" />
+        android:drawable="@android:color/darker_gray" />
 
 </selector>

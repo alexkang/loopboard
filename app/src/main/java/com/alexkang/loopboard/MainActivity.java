@@ -1,16 +1,20 @@
 package com.alexkang.loopboard;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -53,6 +57,11 @@ public class MainActivity extends Activity {
         mAdapter = new SampleAdapter(this, mSamples);
         mSampleList.setAdapter(mAdapter);
 
+        View footer = new View(this);
+        footer.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 360));
+        footer.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+        mSampleList.addFooterView(footer, null, false);
+
 		Button recButton = (Button) findViewById(R.id.rec_button); // Record button.
 		recButton.setOnTouchListener(new OnTouchListener() {
 			/*
@@ -81,6 +90,13 @@ public class MainActivity extends Activity {
 				return true;
 			}
 		});
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean firstUse = sharedPref.getBoolean("first_use", true);
+        if (firstUse) {
+            Toast.makeText(this, "Press and hold the record button to create a sample!", Toast.LENGTH_SHORT).show();
+            sharedPref.edit().putBoolean("first_use", false).apply();
+        }
 	}
 
 	@Override
@@ -318,7 +334,7 @@ public class MainActivity extends Activity {
                         @Override
                         public void run() {
                             mAdapter.notifyDataSetChanged();
-                            mSampleList.smoothScrollToPosition(index);
+                            mSampleList.smoothScrollByOffset(mSampleList.getMaxScrollAmount());
                         }
                     });
                 } else {

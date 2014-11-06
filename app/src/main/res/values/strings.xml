@@ -2,12 +2,8 @@
 <resources>
 
     <string name="app_name">LoopBoard</string>
-    <string name="action_clear">Clear</string>
     <string name="action_stop">Stop</string>
     <string name="action_delete">Delete All Local Sounds</string>
-    <string name="record">Hold to record!</string>
-    <string name="stop">Stop</string>
-    <string name="rerecord">rec</string>
-    <string name="loop">loop!</string>
+    <string name="loop">LOOP</string>
 
 </resources>

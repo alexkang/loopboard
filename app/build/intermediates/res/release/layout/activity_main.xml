@@ -1,30 +1,25 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/background"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
     
     <ListView
         android:id="@+id/sound_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:dividerHeight="7dp"
-        android:divider="@android:color/transparent" />
+        android:layout_height="match_parent"
+        android:divider="@color/charcoal"
+        android:dividerHeight="0.25dp"
+        android:footerDividersEnabled="false" />
     
     <Button
         android:id="@+id/rec_button"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginTop="16dp"
-        android:textColor="@android:color/white"
-        android:background="@drawable/record_background"
-        android:text="@string/record" />
-
-</LinearLayout><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/layout/activity_main.xml -->
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/record_background" />
+</RelativeLayout><!-- From: file:/Users/alex/Documents/Development/loop-board/app/src/main/res/layout/activity_main.xml -->

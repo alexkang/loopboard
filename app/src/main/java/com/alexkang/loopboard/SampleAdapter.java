@@ -48,15 +48,16 @@ public class SampleAdapter extends BaseAdapter {
         Button playButton = (Button) convertView.findViewById(R.id.play);
 
         if (sample.isImported()) {
-            record.setText("stop");
+            record.setText("STOP");
             record.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     sample.stop();
+                    loopButton.setSelected(false);
                 }
             });
         } else {
-            record.setText("rec");
+            record.setText("REC");
             record.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
