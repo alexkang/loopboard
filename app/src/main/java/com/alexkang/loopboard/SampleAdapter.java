@@ -52,12 +52,23 @@ public class SampleAdapter extends BaseAdapter {
             record.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    System.out.println("normal");
                     sample.stop();
                     loopButton.setSelected(false);
                 }
             });
+            record.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    return false;
+                }
+            });
         } else {
             record.setText("REC");
+            record.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {}
+            });
             record.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -70,8 +81,8 @@ public class SampleAdapter extends BaseAdapter {
                             ((MainActivity) context).lastKnownTime = System.nanoTime();
                             return false;
                         }
-                        ((MainActivity) context).lastKnownTime = System.nanoTime();
 
+                        ((MainActivity) context).lastKnownTime = System.nanoTime();
                         ((MainActivity) context).startRecording(position);
                     } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                         view.setPressed(false);
@@ -79,8 +90,6 @@ public class SampleAdapter extends BaseAdapter {
                         sample.stop();
 
                         loopButton.setSelected(false);
-
-                        notifyDataSetChanged();
                     }
 
                     return true;

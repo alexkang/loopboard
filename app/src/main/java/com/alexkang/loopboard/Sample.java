@@ -56,6 +56,15 @@ public class Sample {
 
     public void updateSample(byte[] soundBytes) {
         if (!isImported) {
+            audioTrack = new AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    SAMPLE_RATE,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    soundBytes.length,
+                    AudioTrack.MODE_STATIC
+            );
+
             audioTrack.write(soundBytes, 0, soundBytes.length);
         }
     }

@@ -1,6 +1,8 @@
 package com.alexkang.loopboard;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -16,6 +18,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -74,12 +77,13 @@ public class MainActivity extends Activity {
 				
 				if (action == MotionEvent.ACTION_DOWN) {
                     view.setPressed(true);
+
                     if (((System.nanoTime() - lastKnownTime) / 1e6) < 250) {
                         lastKnownTime = System.nanoTime();
                         return false;
                     }
-                    lastKnownTime = System.nanoTime();
 
+                    lastKnownTime = System.nanoTime();
                     startRecording(mSamples.size());
 				}
 				else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
@@ -125,7 +129,7 @@ public class MainActivity extends Activity {
         super.onResume();
 
         new File(PATH + "/custom").mkdirs();
-        File noMedia = new File(PATH, ".nomedia");
+        File noMedia = new File(PATH + "/custom", ".nomedia");
         try {
             FileOutputStream output = new FileOutputStream(noMedia);
             output.write(0);
@@ -210,6 +214,27 @@ public class MainActivity extends Activity {
         }
 	}
 
+    private void nameRecording(final byte[] byteArray, final int index) {
+        final String[] sampleName = new String[] {"Sample " + (index - numImported)};
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setMessage("Name your recording");
+
+        final EditText editText = new EditText(this);
+        editText.setText(sampleName[0]);
+        editText.selectAll();
+
+        dialog.setView(editText);
+        dialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new SaveThread(byteArray, editText.getText().toString(), index).start();
+            }
+        });
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
     private void stopAll() {
         for (Sample sample : mSamples) {
             sample.stop();
@@ -261,13 +286,22 @@ public class MainActivity extends Activity {
 
             try {
                 output.flush();
-                byte[] byteArray = output.toByteArray();
+                final byte[] byteArray = output.toByteArray();
 
                 if (byteArray.length < 22050) {
                     return;
                 }
 
-                new SaveThread(byteArray, index).start();
+                if (index == mSamples.size()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            nameRecording(byteArray, index);
+                        }
+                    });
+                } else {
+                    new SaveThread(byteArray, mSamples.get(index).getName(), index).start();
+                }
 
                 output.close();
             } catch (IOException e) {
@@ -311,16 +345,18 @@ public class MainActivity extends Activity {
 
     private class SaveThread extends Thread {
 
-        byte[] soundByte;
-        int index;
+        private byte[] soundByte;
+        private String name;
+        private int index;
 
-        public SaveThread(byte[] soundByte, int index) {
+        public SaveThread(byte[] soundByte, String name, int index) {
             this.soundByte = soundByte;
+            this.name = name;
             this.index = index;
         }
 
         public void run() {
-            File savedPCM = new File(PATH, "Sample " + (index - numImported) + ".pcm");
+            File savedPCM = new File(PATH, name + ".pcm");
 
             try {
                 FileOutputStream output = new FileOutputStream(savedPCM);
@@ -328,7 +364,7 @@ public class MainActivity extends Activity {
                 output.close();
 
                 if (index == mSamples.size()) {
-                    mSamples.add(new Sample("Sample " + (index - numImported), soundByte));
+                    mSamples.add(new Sample(name, soundByte));
 
                     runOnUiThread(new Runnable() {
                         @Override
@@ -339,6 +375,12 @@ public class MainActivity extends Activity {
                     });
                 } else {
                     mSamples.get(index).updateSample(soundByte);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    });
                 }
             } catch (Exception e) {
                 e.printStackTrace();
