@@ -102,7 +102,8 @@ public class Sample {
                 currentPlayer.release();
                 currentPlayer = null;
             } else if (!isImported && audioTrack != null) {
-                audioTrack.stop();
+                audioTrack.pause();
+                audioTrack.flush();
             }
         } catch (Exception e) {
             e.printStackTrace();
