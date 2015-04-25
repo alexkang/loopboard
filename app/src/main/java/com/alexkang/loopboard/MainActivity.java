@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 
         mMinBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
-        mSamples = new ArrayList<Sample>();
+        mSamples = new ArrayList<>();
 
         mSampleList = (ListView) findViewById(R.id.sound_list);
         mAdapter = new SampleAdapter(this, mSamples);
@@ -237,23 +237,31 @@ public class MainActivity extends Activity {
 
     private void stopAll() {
         for (Sample sample : mSamples) {
-            sample.stop();
+            try {
+                sample.stop();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         mAdapter.notifyDataSetChanged();
     }
 	
 	private void deleteAll() {
-        stopAll();
+        try {
+            stopAll();
 
-		File[] files = new File(PATH).listFiles();
-		for (File file: files) {
-            if (!file.getName().equals(".nomedia") && !file.getName().equals("custom")) {
-                file.delete();
+            File[] files = new File(PATH).listFiles();
+            for (File file : files) {
+                if (!file.getName().equals(".nomedia") && !file.getName().equals("custom")) {
+                    file.delete();
+                }
             }
-		}
 
-        refreshRecordings();
+            refreshRecordings();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Toast.makeText(this, "All recordings deleted", Toast.LENGTH_SHORT).show();
 	}

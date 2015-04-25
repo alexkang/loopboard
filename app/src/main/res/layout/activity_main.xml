@@ -18,8 +18,11 @@
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:background="@drawable/record_background" />
+
 </RelativeLayout>
