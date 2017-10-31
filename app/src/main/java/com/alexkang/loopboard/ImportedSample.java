@@ -29,8 +29,13 @@ class ImportedSample extends Sample {
             mediaPlayer = MediaPlayer.create(context, Uri.parse(sampleFile.getAbsolutePath()));
         }
         mediaPlayer.setLooping(isLooped);
-        mediaPlayer.seekTo(0);
-        mediaPlayer.start();
+
+        try {
+            mediaPlayer.seekTo(0);
+            mediaPlayer.start();
+        } catch (IllegalStateException e) {
+            // Ignore. We tried out best.
+        }
     }
 
     @Override
@@ -38,7 +43,11 @@ class ImportedSample extends Sample {
         if (mediaPlayer == null) {
             return;
         }
-        mediaPlayer.stop();
+        try {
+            mediaPlayer.stop();
+        } catch (IllegalStateException e) {
+            // Ignore. We tried out best.
+        }
         mediaPlayer.release();
         mediaPlayer = null;
     }
