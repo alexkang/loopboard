@@ -1,20 +1,19 @@
 package com.alexkang.loopboard;
 
-import android.app.Activity;
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
-import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.Button;
@@ -22,379 +21,287 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class MainActivity extends Activity {
-	
-	private static final String PATH = Environment.getExternalStorageDirectory() + "/LoopBoard";
-    private static final int SAMPLE_RATE = 44100;
-    private static final int MAX_TRACKS = 16;
+public class MainActivity extends AppCompatActivity {
 
-    private SampleAdapter mAdapter;
-    private ListView mSampleList;
+    private static final int PERMISSION_REQUEST_CODE = 0;
+    private static final int FOOTER_SIZE_DP = 360;
+    private static final String[] PERMISSIONS =
+            {Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
-    protected ArrayList<Sample> mSamples;
-	private AudioRecord mRecorder;
-    protected int mMinBuffer;
+    private final ArrayList<ImportedSample> importedSamples = new ArrayList<>();
+    private final ArrayList<RecordedSample> recordedSamples = new ArrayList<>();
+    private final Recorder recorder = new Recorder();
+    private final SampleListAdapter sampleListAdapter =
+            new SampleListAdapter(this, recorder, importedSamples, recordedSamples);
+    private final ExecutorService saveExecutor = Executors.newSingleThreadExecutor();
 
-    protected long lastKnownTime = System.nanoTime();
+    // ------- Activity lifecycle methods -------
 
-    private int numImported;
-    private boolean isRecording = false;
-
-	@Override
+    @Override
+	@SuppressLint("ClickableViewAccessibility")
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-        mMinBuffer = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        checkPermissions();
 
-        mSamples = new ArrayList<>();
+		// Retrieve UI elements.
+        ListView sampleList = findViewById(R.id.sound_list);
+        Button recordButton = findViewById(R.id.record_button);
 
-        mSampleList = (ListView) findViewById(R.id.sound_list);
-        mAdapter = new SampleAdapter(this, mSamples);
-        mSampleList.setAdapter(mAdapter);
+        // Initialize the sample list.
+        sampleList.setAdapter(sampleListAdapter);
 
+        // Add some footer space at the bottom of the sample list.
         View footer = new View(this);
-        footer.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 360));
+        footer.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, FOOTER_SIZE_DP));
         footer.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        mSampleList.addFooterView(footer, null, false);
+        sampleList.addFooterView(footer, null, false);
 
-		Button recButton = (Button) findViewById(R.id.rec_button); // Record button.
-		recButton.setOnTouchListener(new OnTouchListener() {
-			/*
-			 * onTouch buttons are used to record sound by holding down the button to
-			 * record, and letting go to save.
-			 */
-			@Override
-			public boolean onTouch(View view, MotionEvent motionEvent) {
-				int action = motionEvent.getAction();
-				
-				if (action == MotionEvent.ACTION_DOWN) {
-                    view.setPressed(true);
+        // Define the record button behavior. Tap and hold to record, release to stop and save.
+        recordButton.setOnTouchListener((view, motionEvent) -> {
+            int action = motionEvent.getAction();
 
-                    if (((System.nanoTime() - lastKnownTime) / 1e6) < 250) {
-                        lastKnownTime = System.nanoTime();
-                        return false;
-                    }
+            if (action == MotionEvent.ACTION_DOWN) {
+                view.setPressed(true);
 
-                    lastKnownTime = System.nanoTime();
-                    startRecording(mSamples.size());
-				}
-				else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                    view.setPressed(false);
-                    stopRecording();
-				}
-				
-				return true;
-			}
-		});
+                // Make sure we haven't hit our maximum number of recordings before proceeding.
+                if (importedSamples.size() + recordedSamples.size() > Utils.MAX_SAMPLES) {
+                    Snackbar.make(
+                            findViewById(R.id.root_layout),
+                            R.string.error_max_samples,
+                            Snackbar.LENGTH_SHORT).show();
+                } else {
+                    recorder.startRecording(recordedBytes -> saveRecording(recordedBytes));
+                }
+            } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                view.setPressed(false);
+                recorder.stopRecording();
+            }
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean firstUse = sharedPref.getBoolean("first_use", true);
-        if (firstUse) {
-            Toast.makeText(this, "Press and hold the record button to create a sample!", Toast.LENGTH_SHORT).show();
-            sharedPref.edit().putBoolean("first_use", false).apply();
-        }
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.action_delete: // Deletes all local sounds on external storage.
-				deleteAll();
-				return true;
-			case R.id.action_stop: // Stops all looped play backs.
-                stopAll();
-				return true;
-			default:
-				return true;
-		}
+            return true;
+        });
 	}
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        new File(PATH + "/custom").mkdirs();
-        File noMedia = new File(PATH + "/custom", ".nomedia");
-        try {
-            FileOutputStream output = new FileOutputStream(noMedia);
-            output.write(0);
-            output.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+    public void onStart() {
+        super.onStart();
         refreshRecordings();
     }
 
     @Override
 	public void onPause() {
 		super.onPause();
-
-        stopAll();
+        stopAllSamples();
 	}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        shutdownSamples();
+
+        recorder.shutdown();
+        saveExecutor.shutdown();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+                // Display a deletion confirmation dialog before actually deleting.
+                new AlertDialog.Builder(this)
+                        .setMessage(getString(R.string.confirm_delete))
+                        .setPositiveButton(R.string.yes, (dialog, which) -> deleteAllRecordings())
+                        .setNegativeButton(R.string.no, (dialog, which) -> dialog.dismiss())
+                        .show();
+
+                return true;
+            case R.id.action_stop:
+                // Stop all currently playing samples.
+                stopAllSamples();
+
+                return true;
+            default:
+                return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (requestCode != PERMISSION_REQUEST_CODE || grantResults.length != PERMISSIONS.length) {
+            return;
+        }
+
+        // Make sure the audio recording permission was granted.
+        for (int i = 0; i < permissions.length; i++) {
+            if (permissions[i].equals(Manifest.permission.RECORD_AUDIO) &&
+                    grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                Toast.makeText(this, R.string.error_permission, Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        }
+
+        // All permissions have been granted. Proceed with the app. Also remember to refresh the
+        // recorder in case the record audio permission was recently granted.
+        recorder.refresh();
+        refreshRecordings();
+    }
+
+    // ------- Private methods -------
+
+    private void checkPermissions() {
+        // Check all permissions to see if they're granted.
+        boolean permissionsGranted = true;
+        for (String permission : PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) ==
+                    PackageManager.PERMISSION_DENIED) {
+                permissionsGranted = false;
+                break;
+            }
+        }
+
+        // If any permissions aren't granted, make a request.
+        if (!permissionsGranted) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    private void updateTutorialVisibility() {
+        if (importedSamples.size() > 0 || recordedSamples.size() > 0) {
+            // If any samples already exist, remove the tutorial text.
+            findViewById(R.id.tutorial).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.tutorial).setVisibility(View.VISIBLE);
+        }
+    }
 
     private void refreshRecordings() {
-        mSamples.clear();
-        numImported = 0;
+        shutdownSamples();
 
-        for (File file : new File(PATH + "/custom").listFiles()) {
-            String fileName = file.getName();
-            if (fileName.endsWith(".wav") || fileName.endsWith(".mp3") || fileName.endsWith(".mp4") || fileName.endsWith(".m4a")) {
-                mSamples.add(new Sample(fileName.substring(0, fileName.length() - 4), file, this));
-                numImported++;
-            }
-        }
-
-        for (File file : new File(PATH).listFiles()) {
-            String fileName = file.getName();
-
-            if (fileName.endsWith(".pcm")) {
-                try {
-                    FileInputStream input = new FileInputStream(file);
-                    byte[] output = new byte[(int) file.length()];
-
-                    input.read(output);
-                    input.close();
-                    mSamples.add(new Sample(fileName.substring(0, fileName.length() - 4), output));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        mAdapter.notifyDataSetChanged();
-    }
-	
-	protected void startRecording(int k) {
+        // First, add user imported audio files to the top of our sample list. Also, create the
+        // LoopBoard directory if it doesn't already exist.
         try {
-            if (k >= MAX_TRACKS + numImported) {
-                Toast.makeText(this, "Cannot create any more sounds", Toast.LENGTH_SHORT).show();
-                return;
-            } else if (isRecording) {
-                return;
+            File importedDir = new File(Utils.IMPORTED_SAMPLE_PATH);
+            importedDir.mkdirs();
+            for (File file : importedDir.listFiles()) {
+                if (Utils.isSupportedSampleFile(file)) {
+                    importedSamples.add(new ImportedSample(this, file));
+                }
             }
-
-            isRecording = true;
-
-            mRecorder = new AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
-                    SAMPLE_RATE,
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    mMinBuffer
-            );
-
-            mRecorder.startRecording();
-            new RecordingThread(k).start();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NullPointerException e) {
+            // No-op. This means that external storage permission was not granted.
         }
+
+        // Next, add samples recorded from this app.
+        for (String fileName : fileList()) {
+            RecordedSample recordedSample = RecordedSample.openSavedSample(this, fileName);
+            if (recordedSample != null) {
+                recordedSamples.add(recordedSample);
+            }
+        }
+
+        // Tell the ListView to refresh.
+        sampleListAdapter.notifyDataSetChanged();
+        updateTutorialVisibility();
+    }
+
+    private void saveRecording(byte[] recordedBytes) {
+	    // Initialize the name input field for the sample.
+        @SuppressLint("InflateParams") View saveLayout =
+                getLayoutInflater().inflate(R.layout.save_sample_dialog, null);
+        EditText sampleNameField = saveLayout.findViewById(R.id.sample_name_field);
+        sampleNameField.setText(
+                String.format(
+                        Locale.ENGLISH,
+                        "Sample %d",
+                        recordedSamples.size() + 1));
+        sampleNameField.selectAll();
+
+        // Create a new dialog for the user to edit the name, and then save the sample.
+        runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this)
+                .setTitle(getString(R.string.name_recording))
+                .setView(saveLayout)
+                .setPositiveButton(
+                        getString(R.string.save), (dialog, which) -> saveExecutor.execute(() -> {
+                            String name = sampleNameField.getText().toString();
+                            if (Utils.saveRecording(getBaseContext(), name, recordedBytes)) {
+                                runOnUiThread(() -> {
+                                    recordedSamples
+                                            .add(RecordedSample
+                                                    .openSavedSample(this, name));
+                                    sampleListAdapter.notifyDataSetChanged();
+                                    updateTutorialVisibility();
+                                });
+                            } else {
+                                Snackbar.make(
+                                        findViewById(R.id.root_layout),
+                                        R.string.error_saving,
+                                        Snackbar.LENGTH_SHORT).show();
+                            }
+                        }))
+                .setCancelable(false)
+                .show());
+    }
+
+    private void stopAllSamples() {
+        for (Sample sample : importedSamples) {
+            sample.stop();
+        }
+        for (Sample sample : recordedSamples) {
+            sample.stop();
+        }
+
+        // Refresh the list to update button states.
+        sampleListAdapter.notifyDataSetChanged();
+    }
+
+    private void shutdownSamples() {
+        // First, stop all currently playing samples.
+        stopAllSamples();
+
+        // Call shutdown on each sample.
+        for (Sample sample : importedSamples) {
+            sample.shutdown();
+        }
+        for (Sample sample : recordedSamples) {
+            sample.shutdown();
+        }
+
+        // Clear the lists.
+        importedSamples.clear();
+        recordedSamples.clear();
+    }
+
+	private void deleteAllRecordings() {
+	    // Stop playing all samples.
+        stopAllSamples();
+
+        // Delete all recordings.
+        for (String fileName : fileList()) {
+            deleteFile(fileName);
+        }
+
+        // Update the UI.
+        refreshRecordings();
+        Snackbar.make(
+                findViewById(R.id.root_layout),
+                R.string.samples_deleted,
+                Snackbar.LENGTH_SHORT).show();
 	}
-
-	protected void stopRecording() {
-        try {
-            new StopThread().start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-	}
-
-    private void nameRecording(final byte[] byteArray, final int index) {
-        final String[] sampleName = new String[] {"Sample " + (index - numImported)};
-
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setMessage("Name your recording");
-
-        final EditText editText = new EditText(this);
-        editText.setText(sampleName[0]);
-        editText.selectAll();
-
-        dialog.setView(editText);
-        dialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                new SaveThread(byteArray, editText.getText().toString(), index).start();
-            }
-        });
-        dialog.setCancelable(false);
-        dialog.show();
-    }
-
-    private void stopAll() {
-        for (Sample sample : mSamples) {
-            try {
-                sample.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        mAdapter.notifyDataSetChanged();
-    }
-	
-	private void deleteAll() {
-        try {
-            stopAll();
-
-            File[] files = new File(PATH).listFiles();
-            for (File file : files) {
-                if (!file.getName().equals(".nomedia") && !file.getName().equals("custom")) {
-                    file.delete();
-                }
-            }
-
-            refreshRecordings();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Toast.makeText(this, "All recordings deleted", Toast.LENGTH_SHORT).show();
-	}
-
-    private class RecordingThread extends Thread {
-
-        private int index;
-
-        public RecordingThread(int k) {
-            index = k;
-        }
-
-        public void run() {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            byte[] buffer = new byte[mMinBuffer];
-            int b = 0;
-
-            while (b < 14000) {
-                try {
-                    b += mRecorder.read(buffer, 0, mMinBuffer);
-                } catch(NullPointerException e) {
-                    return;
-                }
-            }
-
-            while (isRecording) {
-                mRecorder.read(buffer, 0, mMinBuffer);
-                output.write(buffer, 0, mMinBuffer);
-            }
-
-            try {
-                output.flush();
-                final byte[] byteArray = output.toByteArray();
-
-                if (byteArray.length < 22050) {
-                    return;
-                }
-
-                if (index == mSamples.size()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            nameRecording(byteArray, index);
-                        }
-                    });
-                } else {
-                    new SaveThread(byteArray, mSamples.get(index).getName(), index).start();
-                }
-
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-    private class StopThread extends Thread {
-
-        public void run() {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            if (mRecorder != null) {
-                isRecording = false;
-
-                try {
-                    mRecorder.stop();
-                    mRecorder.release();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                }
-
-                mRecorder = null;
-            }
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mAdapter.notifyDataSetChanged();
-                }
-            });
-        }
-
-    }
-
-    private class SaveThread extends Thread {
-
-        private byte[] soundByte;
-        private String name;
-        private int index;
-
-        public SaveThread(byte[] soundByte, String name, int index) {
-            this.soundByte = soundByte;
-            this.name = name;
-            this.index = index;
-        }
-
-        public void run() {
-            File savedPCM = new File(PATH, name + ".pcm");
-
-            try {
-                FileOutputStream output = new FileOutputStream(savedPCM);
-                output.write(soundByte);
-                output.close();
-
-                if (index == mSamples.size()) {
-                    mSamples.add(new Sample(name, soundByte));
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdapter.notifyDataSetChanged();
-                            mSampleList.smoothScrollByOffset(mSampleList.getMaxScrollAmount());
-                        }
-                    });
-                } else {
-                    mSamples.get(index).updateSample(soundByte);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-	
 }

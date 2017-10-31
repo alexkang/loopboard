@@ -1,0 +1,4 @@
+#Sat Oct 28 17:23:32 PDT 2017
+base.0=/Users/alex/Development/loopboard/app/build/intermediates/transforms/dexMerger/debug/2
+renamed.0=classes.dex
+file.0=/Users/alex/Development/loopboard/app/build/intermediates/transforms/dexMerger/debug/2/classes.dex

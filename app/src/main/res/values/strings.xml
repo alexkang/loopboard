@@ -2,8 +2,30 @@
 <resources>
 
     <string name="app_name">LoopBoard</string>
+
+    <!-- ActionBar -->
     <string name="action_stop">Stop</string>
-    <string name="action_delete">Delete All Local Sounds</string>
+    <string name="action_delete">Delete saved recordings</string>
+    <string name="confirm_delete">Are you sure you want to delete all your recorded samples?</string>
+
+    <!-- General -->
+    <string name="error_permission">Audio recording permission must be granted for LoopBoard to function properly</string>
+    <string name="tutorial">Hold the record button to create a sample</string>
+    <string name="error_max_samples">Cannot create any more samples</string>
+    <string name="samples_deleted">All recorded samples removed</string>
+
+    <!-- Save dialog -->
+    <string name="name_recording">Name your recording</string>
+    <string name="error_saving">An error occurred while saving</string>
+
+    <!-- UI buttons -->
     <string name="loop">LOOP</string>
+    <string name="stop">STOP</string>
+    <string name="record">REC</string>
+
+    <!-- Dialog buttons -->
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="save">Save</string>
 
 </resources>

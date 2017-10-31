@@ -1,40 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
-    android:gravity="center" >
-
-    <Button
-        android:id="@+id/rerecord"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:background="@drawable/rerecord_background"
-        android:textColor="@android:color/white"
-        android:textStyle="bold" />
+    android:layout_height="72dp">
 
     <Button
         android:id="@+id/play"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="4"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
+        android:layout_weight="1"
+        android:gravity="start|center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@drawable/play_button"
         android:textColor="@color/charcoal"
-        android:background="@drawable/play_background"
-        android:textStyle="italic"
-        android:singleLine="true" />
+        android:singleLine="true"
+        style="?android:buttonBarButtonStyle" />
 
     <Button
-        android:id="@+id/loop"
-        android:layout_width="0dp"
+        android:id="@+id/stop"
+        android:layout_width="72dp"
         android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:background="@drawable/loop_background"
+        android:background="@drawable/rerecord_button"
         android:textColor="@android:color/white"
         android:textStyle="bold"
-        android:text="@string/loop"/>
+        android:text="@string/stop"
+        style="?android:buttonBarButtonStyle" />
+
+    <Button
+        android:id="@+id/rerecord"
+        android:layout_width="72dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/rerecord_button"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:text="@string/record"
+        style="?android:buttonBarButtonStyle" />
+
+    <CheckBox
+        android:id="@+id/loop"
+        android:layout_width="72dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/loop_button"
+        android:button="@android:color/transparent"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:text="@string/loop"
+        style="?android:buttonBarButtonStyle" />
 
 </LinearLayout>
